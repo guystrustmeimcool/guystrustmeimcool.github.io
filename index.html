@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>the rock simulator</title>
+	<style>
+		#canvas {
+			width: 100vw; 
+			height: 100vh;
+		}
+		body {
+			margin: 0;
+		}
+		html {
+			overflow: hidden;
+		} 
+	</style>
+</head>
+<body>
+		
+	<canvas id="canvas"></canvas>
+	<script>
+
+		const canvas = document.getElementById("canvas");
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+		const ctx = canvas.getContext("2d");
+		var x = 600;
+		var y = 350;
+		var vx = 0;
+		var vy = 0;
+		var ongr = false;
+		var map = 4;
+		var shrek = 0;
+		var shrekx = 0;
+		var shrektrav = 2;
+		var dead = false;
+		var mobtype = 0;
+		var arrowc = 0;
+		var speed = 25;
+		var arrowt = 0;
+		var storm = 0;
+		var stormhealth = 99;
+		var changestr = "";
+		var stormstr = "hey big noob";
+		var stormnum = 0;
+		var waittext = 0;
+		var stormx = 300;
+		var stormy = 0;
+
+		var keys = {
+			w: false,
+			a: false,
+			s: false,
+			d: false
+		};
+		var mobs = [];
+		for (let i = 0; i < 12; i++) {
+			mobs.push({
+				x: 0
+			})
+		}
+
+		var textures = {
+			player: {image: new Image(), url: "https://freepngimg.com/save/141882-body-dwayne-johnson-png-image-high-quality/1024x1407"},
+			mob: {image: new Image(), url: "https://th.bing.com/th/id/R.84b2dd996a164a449b1b5ca95e928fe8?rik=7qC6gGGj5bcKjQ&riu=http%3a%2f%2fclipartmag.com%2fimages%2fscary-monster-cartoon-clipart-49.jpg&ehk=ys5hyMJ7dGzL0gWkFi8sPxNtWGKfXdSZlNmMgFFoj4M%3d&risl=&pid=ImgRaw&r=0"},
+			shrek: {image: new Image(), url: "https://purepng.com/public/uploads/large/purepng.com-shrekshrekcomputer-animatedfantasy-filmfairy-talebook-1701528653796hsood.png"},
+			arrowl: {image: new Image(), url: "https://th.bing.com/th/id/R.495511a87c3cab2068e80bd967274d08?rik=nO6PaKPZgQ%2bd3A&pid=ImgRaw&r=0"},
+			arrowr: {image: new Image(), url: "https://th.bing.com/th/id/R.8eb4399f33a45a029e35a9a3620e97c1?rik=wW8CBta6TPhKAA&riu=http%3a%2f%2fclipart-library.com%2fimages_k%2fred-arrow-png-transparent%2fred-arrow-png-transparent-8.png&ehk=hTW2g3RN0YY8VL1u2eCn9gBanMOilHZphEzpnxmQZTI%3d&risl=&pid=ImgRaw&r=0"}, 
+			coley: {image: new Image(), url: "https://static.vecteezy.com/system/resources/previews/001/192/791/original/storm-png.png"},
+			rain: {image: new Image(), url: "https://tse1.mm.bing.net/th/id/OIP.sMzgCsADnXCF1BIDo3IzZgHaEK?rs=1&pid=ImgDetMain"}	 
+		}
+		for (let texture in textures) {
+			textures[texture].image.src = textures[texture].url;
+		}
+
+
+		document.body.onkeydown = e => {
+			keys[e.key] = true; 
+		};
+		document.body.onkeyup = e => {
+			keys[e.key] = false; 
+		};
+
+		
+		var clouds = [];
+		for (let i = 0; i < 10; i++) {
+			clouds.push({
+				x: Math.random() * canvas.width,
+				y: Math.random() * 240 + 20,
+				speed: Math.random() * 8 + 2,
+				color: i === 0 ? "black" : "white"
+			})
+		}
+
+		function DRAW() {
+
+			var oldx = x;
+			var oldy = y;
+
+			x += vx;
+			y += vy;
+			if (keys.w && ongr) {
+				vy -= 20;
+				console.log("jump");
+			}
+			if (keys.a) vx -= 5;
+			if (keys.d) vx += 5;
+			vx *= 0.69;
+			vy += 1;
+
+			if (y > 350) {
+				ongr = true;
+				vy = 0;
+				y = oldy;
+			} else {
+				ongr = false;
+			}
+			if (x > canvas.width + 0 || x < -73) {
+				vx = 0;
+				x = oldx;
+			}
+			if (x > canvas.width - 10) {
+				if (map == 1) {
+					map = 2;
+					x = 0 - 64
+				} else if (map == 3) {
+					map = 1;
+					x = 0 - 64
+				
+				}
+			}
+			if (x < -65) {
+				if (map == 1) {
+					if (shrek == 3 || shrek == 2) {
+						map = 3;
+						x = canvas.width - 9 
+					}
+				} else if (map == 2) {
+					map = 1;
+					x = canvas.width - 9  
+				} else if (map == 3) {
+					map = 4;
+					x = canvas.width - 9 
+				}
+			}
+
+			//arrowspeed
+			arrowc+=1
+			if (arrowc == speed || arrowc > speed) {
+				arrowc = 0;
+				if (arrowt == 0) {
+					arrowt = 1;
+				} else if (arrowt == 1) {
+					arrowt = 0;
+				}
+			}
+
+			//shrek stuff
+
+			if (shrek == 1) {
+				
+				shrekx -= 10;
+				if (shrekx < -100 && shrektrav == 2) {
+					shrektrav -= 1;
+					shrekx = canvas.width - 100
+				}
+				if (shrekx <= 869 && map == 1 && shrektrav == 1) {
+					shrek = 2
+				}
+			}
+
+			if (x > 750 && map == 2 && shrek == 0) {
+				shrek = 1;
+				shrekx = canvas.width - 200
+			}
+
+			for (let cloud of clouds) {
+				cloud.x += cloud.speed;
+				if (cloud.x > canvas.width) {
+					cloud.x = -200;
+					cloud.y = Math.random() * 240 + 20;
+				}
+			}
+
+			for (let mob of mobs) {
+				if (x >= mob.x && map == 1 && mobtype == 0) {
+					mob.x += 5;
+				}
+				if (x <= mob.x && map == 1 && mobtype == 0) {
+					mob.x -= 5;
+				}
+				if (x == mob.x && map == 1 && mobtype == 0) {
+					mob.x = 0;
+				}
+			}
+
+			ctx.clearRect(0, 0, canvas.width, canvas.height)
+			
+			if (map == 1) {
+				//blue
+				ctx.clearRect(0, 0, canvas.width, canvas.height)
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "#8dbbf7";
+				ctx.fillRect(0, 0, 1500, 1000)
+				ctx.stroke();
+
+				//green
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "#65c966";
+				ctx.fillRect(0, 500, 1500, 300);
+				ctx.stroke();
+
+				for (let mob of mobs) {
+					if (mobtype != 3) {
+						mob.y = y;
+						ctx.drawImage(textures.mob.image, mob.x, 400, 66, 100);
+						var distance = Math.abs(mob.x-x)
+						var distance = Math.abs(distance)
+						if (distance < 60 && y > 260) {
+							dead = 1;
+						}
+					}
+
+					//MOB DEATH
+					if (mob.x >= 735 && map == 1 && mobtype != 3) {
+						mobtype = 2;
+						ctx.beginPath();
+					   ctx.LineWidth = 24;
+					   ctx.fillStyle = "white";
+					   ctx.fillRect(500, 350, 225, 95);
+					   ctx.fillStyle = "black";
+					   ctx.font = "normal 30px Arial";
+					   ctx.fillText("owwww my toe!!!!!!!!!!!!", 500, 425);
+					   setTimeout(() => {mobtype = 3}, 1000);
+				  }
+				}
+
+				//tree 
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "#917a40";
+				ctx.fillRect(800, 200, 69, 300);
+				ctx.stroke()
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "rgba(100, 200, 100, 0.8)";
+				ctx.fillRect(690, 100, 300, 300);
+				ctx.stroke();
+			}
+
+			if (map == 2) {
+				//blue
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "#406b91";
+				ctx.fillRect(0, 0, 1500, 1000)
+				ctx.stroke();
+
+				//green
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "green";
+				ctx.fillRect(0, 500, 1500, 300);
+				ctx.stroke();
+
+				//sign (stem)
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "#917a40";
+				ctx.fillRect(550, 400, 25, 100);
+				//sign (plat)
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "#917a40";
+				ctx.fillRect(500, 380, 125, 75);
+
+				if (x >= 420 && x <= 625 && y >= 201) {
+					ctx.beginPath();
+					ctx.LineWidth = 24;
+					ctx.fillStyle = "white";
+					ctx.fillRect(450, 250, 225, 95);
+					ctx.fillStyle = "black";
+					ctx.font = "normal 30px Arial";
+					if (shrek == 0) {
+						ctx.fillText("dont go past", 475, 295);
+						ctx.fillText("this sign...", 495, 320);
+					}
+					if (shrek == 1) {
+						ctx.fillText("you messed up", 475, 295);
+						ctx.fillText("lmao", 495, 320);
+					}
+					if (shrek == 2 || shrek == 3) {
+						ctx.fillText("the cloud must", 475, 295);
+						ctx.fillText("be ridden", 475, 315);
+					}
+				}
+			}
+
+			if (map == 3) {
+				//blue
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "#99c8f2";
+				ctx.fillRect(0, 0, 1500, 1000)
+				ctx.stroke();
+
+				//sand
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "#ecf274";
+				ctx.fillRect(0, 500, 1500, 300);
+				ctx.stroke();
+
+				//cactus 1
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "#519155";
+				ctx.fillRect(550, 340, 60, 160);	 
+				ctx.fillRect(600, 400, 40, 40);
+				ctx.fillRect(800, 440, 60, 60);
+				ctx.fillRect(200, 420, 60, 80);
+
+				if (x+75 >= 550 && x <= 610 && y+150 >= 340 && y <= 500) {
+					dead = true;
+				}
+				if (x+75 >= 600 && x <= 640 && y+150 >= 400 && y <= 440) {
+					dead = true;
+				}
+				if (x+75 >= 800 && x <= 860 && y+150 >= 440 && y <= 500) {
+					dead = true;
+				}
+				if (x+75 >= 200 && x <= 260 && y+150 >= 420 && y <= 500) {
+					dead = true;
+				}
+			}
+
+			if (map == 4) {
+				//blue
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "#99c8f2";
+				ctx.fillRect(0, 0, 1500, 1000)
+				ctx.stroke();
+
+				//grass (light)
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "#bbf5b0";
+				ctx.fillRect(0, 500, 1500, 300);
+				ctx.stroke();
+
+				//flower
+
+				ctx.fillStyle = "#53ed65";
+				ctx.fillRect(550, 450, 10, 50);   
+				ctx.fillStyle = "yellow";
+				ctx.fillRect(545, 450, 20, 20);  
+				ctx.fillStyle = "pink";
+				ctx.fillRect(545, 435, 20, 15); 
+				ctx.fillRect(530, 450, 15, 20); 
+				ctx.fillRect(545, 470, 20, 15);
+				ctx.fillRect(565, 450, 15, 20); 
+
+				//flower
+
+				ctx.fillStyle = "#53ed65";
+				ctx.fillRect(850, 450, 10, 50);   
+				ctx.fillStyle = "#5089de";
+				ctx.fillRect(845, 450, 20, 20);  
+				ctx.fillStyle = "#f07067";
+				ctx.fillRect(845, 435, 20, 15); 
+				ctx.fillRect(830, 450, 15, 20); 
+				ctx.fillRect(845, 470, 20, 15);
+				ctx.fillRect(865, 450, 15, 20); 
+			}
+
+			
+
+			//clouds
+			ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+			for (let cloud of clouds) {
+				if (map == 4 && storm == 0) {
+					ctx.fillStyle = cloud.color;
+				} else {
+					ctx.fillStyle = "white";
+				}
+				ctx.globalAlpha = 0.5;
+				ctx.fillRect(cloud.x, cloud.y, 200, 150);
+				if (cloud.color == "black") {
+					if (x+75 >= cloud.x && x <= cloud.x+200 && y+150 >= cloud.y && y <= cloud.y+150 && map == 4 && storm == 0) {
+					storm = 1;
+					}
+				}
+				ctx.globalAlpha = 1;
+			}
+
+			//player
+			ctx.drawImage(textures.player.image, x, y, 75, 150);
+		//player
+		ctx.drawImage(textures.rain.image, x+100, y, 75, 150);
+			if (shrek == 1) {
+				//shrek (very sscary)
+				if (shrektrav == map) {
+					ctx.drawImage(textures.shrek.image, shrekx, 0, 200, 900); 
+				}
+			}
+
+			if (shrek == 2 & map == 1) {
+				ctx.drawImage(textures.shrek.image, shrekx, 0, 200, 900); 
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "white";
+				ctx.fillRect(500, 100, 400, 95);
+				ctx.fillStyle = "black";
+				ctx.font = "normal 25px Arial";
+				ctx.fillText("i stubbed my toe on the tree ow!!", 525, 150);
+					setTimeout(() => {shrek = 3}, 1000);
+			}
+			
+			if (x >= shrekx && shrektrav == map && shrek == 1) {
+				dead = true;
+			}
+
+
+			if (storm == 1 || storm == 2) {
+				waittext++;
+				if (waittext >= 4) {
+					waittext = 0;
+					stormnum+=1;
+				}
+				ctx.drawImage(textures.coley.image, 300, 10, 700, 300); 
+				ctx.fillStyle = "white";
+				ctx.fillRect(700, 200, 400, 95);
+				ctx.fillStyle = "black";
+				ctx.font = "normal 25px Arial";
+				if (storm === 1) {
+					stormstr = "hey big noob";
+					if (waittext <= 0 && stormnum <= stormstr.length) {
+						changestr += stormstr.charAt(stormnum-1);
+					}
+					ctx.fillText(changestr, 800, 250);
+					if (stormnum === 30) {
+						storm = 2;
+						stormnum = 0;
+						changestr = ""
+						str = "ur a big stinkynoobrtttttt";
+					}
+				}
+				if (storm === 2) {
+					stormstr = "ur a big stinky noob";
+					if (waittext <= 0 && stormnum <= stormstr.length) {
+						changestr += stormstr.charAt(stormnum-1);
+					}
+					ctx.fillText(changestr, 800, 250);
+					if (stormnum === 45) {
+						storm = 3;
+						stormnum = 0;
+					}
+				}
+			}
+
+
+			//cloud boss!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+			if (storm == 3) {
+				ctx.drawImage(textures.coley.image, stormx, stormy, 400, 200); 
+				var rph = 1
+				//Math.floor(Math.random() * 1) + 1;
+				if (rph == 1) {
+					if (x-150 >= stormx) {
+						stormx += 8;
+					}
+					if (x-150 <= stormx) {
+						stormx -= 8;
+					}
+					if (x-135 >= stormx && x-165 <= stormx) {
+						rph = 0;
+						stormnum+=1;
+
+					}
+					
+				} else if (rph == 2) {
+
+				} else if (rph == 3) {
+
+				}
+			}
+
+			//ARROWS 
+			if (map == 1) {
+				ctx.drawImage(textures.arrowr.image, 1275+(arrowt*-10), 300, 80, 50);
+				if (shrek == 2 || shrek == 3) {
+					ctx.drawImage(textures.arrowl.image, 15+(arrowt*10), 300, 80, 50);
+				} 
+			}
+			if (map == 2) {
+				ctx.drawImage(textures.arrowl.image, 15+(arrowt*10), 300, 80, 50);
+			}
+			if (map == 3) {
+				ctx.drawImage(textures.arrowr.image, 1275+(arrowt*-10), 300, 80, 50);
+				ctx.drawImage(textures.arrowl.image, 15+(arrowt*10), 300, 80, 50);
+			}
+
+
+			if (dead) {
+				ctx.beginPath();
+				ctx.LineWidth = 24;
+				ctx.fillStyle = "red";
+				ctx.fillRect(0, 0, 10000, 10000);
+				ctx.fillStyle = "black";
+				ctx.font = "normal 30px Arial";
+				ctx.fillText("pranked", 600, 350);
+				ctx.fillText("rip im so sorry you died", 800, 550);
+			}
+			
+			requestAnimationFrame(DRAW);
+		}
+		DRAW();
+
+
+	</script>
+</body>
+</html>
+
